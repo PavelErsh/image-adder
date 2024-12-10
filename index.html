@@ -3,31 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Upload</title>
+    <title>Загрузить изображение</title>
 </head>
 <body>
     <h1>Загрузить изображение</h1>
-    <form>
-        <label for="upload-button" style="cursor: pointer;">
-            <button type="button">Выбрать или сделать снимок</button>
-        </label>
-        <input id="upload-button" type="file" accept="image/*" capture="environment" style="display: none;">
-    </form>
+    <!-- Основная кнопка -->
+    <button id="upload-button">Выбрать или сделать снимок</button>
+    <!-- Невидимый элемент загрузки -->
+    <input id="file-input" type="file" accept="image/*" capture="environment" style="display: none;">
 
-    <p id="image-info"></p>
+    <p id="file-name"></p>
     <div id="preview" style="margin-top: 20px;">
-        <img id="image-preview" src="" alt="Preview" style="max-width: 100%; display: none;">
+        <img id="image-preview" src="" alt="Предпросмотр изображения" style="max-width: 100%; display: none;">
     </div>
 
     <script>
         const uploadButton = document.getElementById('upload-button');
+        const fileInput = document.getElementById('file-input');
+        const fileName = document.getElementById('file-name');
         const imagePreview = document.getElementById('image-preview');
-        const imageInfo = document.getElementById('image-info');
 
-        uploadButton.addEventListener('change', (event) => {
+        // Открытие окна выбора файла при клике на кнопку
+        uploadButton.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Обработка выбора файла
+        fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
-                imageInfo.textContent = `Выбран файл: ${file.name}`;
+                fileName.textContent = `Выбран файл: ${file.name}`;
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     imagePreview.src = e.target.result;
@@ -35,7 +40,8 @@
                 };
                 reader.readAsDataURL(file);
             } else {
-                imageInfo.textContent = 'Файл не выбран.';
+                fileName.textContent = 'Файл не выбран.';
+                imagePreview.style.display = 'none';
             }
         });
     </script>

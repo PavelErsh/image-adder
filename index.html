@@ -214,11 +214,9 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            width: 45%;
+            width: 100%;
             transition: background-color 0.3s ease, transform 0.2s ease;
             margin-bottom: 15px;
-            display: inline-block;
-            margin-right: 10px;
         }
 
         .capture-photo-button:hover {
@@ -227,12 +225,6 @@
 
         .capture-photo-button:active {
             transform: scale(0.98);
-        }
-
-        video, canvas {
-            display: none;
-            width: 100%;
-            border-radius: 8px;
         }
 
         .loader {
@@ -297,31 +289,29 @@
 
         .thumbnail-container {
             margin-top: 15px;
-            display: flex;
-            align-items: center;
+            position: relative;
         }
 
-        .thumbnail {
-            width: 100px;
-            height: 100px;
+        .thumbnail-container img {
+            width: 100%;
             border-radius: 8px;
-            margin-right: 10px;
-            object-fit: cover;
         }
 
-        .delete-button {
-            background-color: #dc3545;
+        .thumbnail-container .delete-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: red;
             color: white;
             border: none;
-            padding: 8px 12px;
-            font-size: 14px;
-            border-radius: 8px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .delete-button:hover {
-            background-color: #c82333;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -353,24 +343,15 @@
 
             <label for="check_photo">Визуальное доказательство: <span class="required">*</span></label>
             <div class="file-input-container">
-                <button type="button" class="capture-photo-button" onclick="openCamera()">
-                    <span class="material-icons">photo_camera</span> Сделать фото
-                </button>
-                <button type="button" class="capture-photo-button" onclick="document.getElementById('check_photo').click()">
-                    <span class="material-icons">image</span> Загрузить из галереи
-                </button>
-                <input type="file" id="check_photo" name="check_photo" accept="image/*" required style="display:none;">
+                <input type="file" id="check_photo" name="check_photo" accept="image/*" capture="environment" style="display:none;" required>
+                <button type="button" class="capture-photo-button" onclick="document.getElementById('check_photo').click()">Сделать фото</button>
+                <button type="button" class="file-input-label" onclick="document.getElementById('check_photo').click()">Загрузить из галереи</button>
             </div>
 
             <div class="thumbnail-container" id="thumbnailContainer" style="display:none;">
-                <img id="thumbnail" class="thumbnail">
-                <button type="button" class="delete-button" onclick="deletePhoto()">
-                    <span class="material-icons">delete</span> Удалить
-                </button>
+                <img id="thumbnail" src="" alt="Миниатюра">
+                <button type="button" class="delete-button" onclick="deletePhoto()">×</button>
             </div>
-
-            <video id="video" playsinline autoplay></video>
-            <canvas id="canvas"></canvas>
 
             <label for="comment">Комментарий:</label>
             <textarea id="comment" name="comment" placeholder="Введите комментарий"></textarea>
@@ -385,77 +366,6 @@
     <button class="floating-button"> <span class="material-icons">keyboard_hide</span></button>
 
     <script>
-        let videoStream;
-
-        async function openCamera() {
-            if (/Mobi|Android/i.test(navigator.userAgent)) {
-                const video = document.getElementById('video');
-                const canvas = document.getElementById('canvas');
-
-                try {
-                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    video.srcObject = videoStream;
-                    video.style.display = 'block';
-                    canvas.style.display = 'block';
-                } catch (err) {
-                    alert('Ошибка доступа к камере: ' + err);
-                }
-            } else {
-                alert('Функция камеры доступна только на мобильных устройствах.');
-            }
-        }
-
-        function capturePhoto() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const context = canvas.getContext('2d');
-            const checkPhotoInput = document.getElementById('check_photo');
-
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            canvas.toBlob((blob) => {
-                const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                checkPhotoInput.files = dt.files;
-                displayThumbnail(URL.createObjectURL(blob));
-            }, 'image/jpeg');
-
-            stopCamera();
-        }
-
-        function stopCamera() {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-                videoStream = null;
-            }
-            document.getElementById('video').style.display = 'none';
-            document.getElementById('canvas').style.display = 'none';
-        }
-
-        function displayThumbnail(url) {
-            const thumbnail = document.getElementById('thumbnail');
-            const thumbnailContainer = document.getElementById('thumbnailContainer');
-            thumbnail.src = url;
-            thumbnailContainer.style.display = 'flex';
-        }
-
-        function deletePhoto() {
-            const checkPhotoInput = document.getElementById('check_photo');
-            checkPhotoInput.value = '';
-            document.getElementById('thumbnailContainer').style.display = 'none';
-        }
-
-        document.getElementById('check_photo').addEventListener('change', function (event) {
-            const file = event.target.files[0];
-            if (file) {
-                const url = URL.createObjectURL(file);
-                displayThumbnail(url);
-            }
-        });
-
         async function submitForm() {
             const form = document.getElementById('paymentForm');
             const loader = document.getElementById('loader');
@@ -508,6 +418,23 @@
             document.getElementById('comment').value = '';
             document.getElementById('thumbnailContainer').style.display = 'none';
         }
+
+        function deletePhoto() {
+            document.getElementById('thumbnailContainer').style.display = 'none';
+            document.getElementById('check_photo').value = '';
+        }
+
+        document.getElementById('check_photo').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('thumbnail').src = e.target.result;
+                    document.getElementById('thumbnailContainer').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     </script>
 </body>
 </html>

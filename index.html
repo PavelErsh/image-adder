@@ -71,10 +71,11 @@
 <body>
     <h1>Загрузка изображений</h1>
     <div class="button-container">
-        <button class="action-button" id="takePhoto">
+        <label class="action-button">
             <i class="material-icons">photo_camera</i>
             Сделать фото
-        </button>
+            <input type="file" id="takePhoto" accept="image/*" capture="environment" style="display: none;">
+        </label>
         <label class="action-button">
             <i class="material-icons">file_upload</i>
             Загрузить из галереи
@@ -84,16 +85,12 @@
     <div id="previewContainer" class="image-preview"></div>
 
     <script>
-        const takePhotoButton = document.getElementById('takePhoto');
+        const takePhotoInput = document.getElementById('takePhoto');
         const imageUpload = document.getElementById('imageUpload');
         const previewContainer = document.getElementById('previewContainer');
 
-        takePhotoButton.addEventListener('click', () => {
-            alert('Функция сделать фото пока не реализована.');
-        });
-
-        imageUpload.addEventListener('change', (event) => {
-            const files = Array.from(event.target.files);
+        function previewImages(input) {
+            const files = Array.from(input.files);
 
             files.forEach((file) => {
                 const reader = new FileReader();
@@ -109,6 +106,14 @@
                 };
                 reader.readAsDataURL(file);
             });
+        }
+
+        takePhotoInput.addEventListener('change', () => {
+            previewImages(takePhotoInput);
+        });
+
+        imageUpload.addEventListener('change', () => {
+            previewImages(imageUpload);
         });
     </script>
 </body>
